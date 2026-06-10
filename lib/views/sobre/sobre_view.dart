@@ -35,7 +35,22 @@ class SobreView extends StatelessWidget {
             const SizedBox(height: 8),
             const Text(
               "O AutoFlow foi desenhado para apoiar oficinas mecanicas no controle de clientes, "
-              "veiculos, ordens de servico, estoque e acompanhamento de entregas.",
+              "veiculos e ordens de servico com autenticação Firebase, dados em tempo real e consumo de API REST.",
+              style: TextStyle(fontSize: 16),
+            ),
+
+            const SizedBox(height: 24),
+            const Text(
+              "Recursos Ativos",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "• Autenticação com Firebase Authentication\n"
+              "• Persistência por usuário no Cloud Firestore\n"
+              "• CRUD de clientes e ordens\n"
+              "• Pesquisa dedicada com ordenação\n"
+              "• Consumo de API REST externa",
               style: TextStyle(fontSize: 16),
             ),
             

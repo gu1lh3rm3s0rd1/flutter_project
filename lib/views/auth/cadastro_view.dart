@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
+import '../../widgets/dialogs_helper.dart';
 
 class CadastroView extends StatefulWidget {
   const CadastroView({super.key});
@@ -21,29 +22,27 @@ class _CadastroViewState extends State<CadastroView> {
   void _realizarCadastro() {
     if (_formKey.currentState!.validate()) {
       final auth = context.read<AuthController>();
-      final sucesso = auth.cadastrarUsuario(
+      auth.cadastrarUsuario(
         nome: _nomeController.text,
         email: _emailController.text,
         telefone: _telefoneController.text,
         senha: _senhaController.text,
-      );
+      ).then((sucesso) {
+        if (!mounted) return;
 
-      if (sucesso) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Conta criada. Faca login para continuar.'),
-            backgroundColor: Color(0xFF1E3A5F),
-          ),
-        );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Este e-mail ja esta cadastrado.'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
+        if (sucesso) {
+          DialogsHelper.showSnackBar(
+            context,
+            'Conta criada. Faça login para continuar.',
+          );
+          Navigator.pop(context);
+        } else {
+          DialogsHelper.showSnackBar(
+            context,
+            auth.errorMessage ?? 'Não foi possivel criar a conta.',
+          );
+        }
+      });
     }
   }
 
@@ -59,10 +58,11 @@ class _CadastroViewState extends State<CadastroView> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
     const Color primaryColor = Color(0xFF1E3A5F);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Criar Conta da Oficina")),
+      appBar: AppBar(title: const Text('Criar Conta da Oficina')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -75,10 +75,14 @@ class _CadastroViewState extends State<CadastroView> {
                 style: TextStyle(color: Colors.black54),
               ),
               const SizedBox(height: 16),
+              if (auth.isLoading) ...[
+                const LinearProgressIndicator(minHeight: 3),
+                const SizedBox(height: 16),
+              ],
               TextFormField(
                 controller: _nomeController,
                 decoration: const InputDecoration(labelText: 'Nome Completo', border: OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? 'Informe seu nome' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Informe seu nome' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -92,14 +96,14 @@ class _CadastroViewState extends State<CadastroView> {
                 controller: _telefoneController,
                 decoration: const InputDecoration(labelText: 'Telefone', border: OutlineInputBorder()),
                 keyboardType: TextInputType.phone,
-                validator: (v) => v!.isEmpty ? 'Informe seu telefone' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Informe seu telefone' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _senhaController,
                 decoration: const InputDecoration(labelText: 'Senha', border: OutlineInputBorder()),
                 obscureText: true,
-                validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null,
+                validator: (v) => v == null || v.length < 6 ? 'Mínimo 6 caracteres' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -113,9 +117,15 @@ class _CadastroViewState extends State<CadastroView> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _realizarCadastro,
+                  onPressed: auth.isLoading ? null : _realizarCadastro,
                   style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white),
-                  child: const Text("Cadastrar"),
+                  child: auth.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Cadastrar'),
                 ),
               ),
             ],

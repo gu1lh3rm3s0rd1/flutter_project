@@ -1,55 +1,86 @@
 import 'package:flutter/material.dart';
 
-class AuthController extends ChangeNotifier {
-  bool _estaLogado = false;
-  bool get estaLogado => _estaLogado;
+import '../services/office_auth_service.dart';
 
-  final List<Map<String, String>> _usuarios = [
-    {
-      'nome': 'Marina Costa',
-      'email': 'marina@autoflow.com',
-      'telefone': '(16) 99111-2233',
-      'senha': '123456',
-    },
-  ];
+class AuthController extends ChangeNotifier {
+  final OfficeAuthService _service = OfficeAuthService.instance;
+
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  bool get estaLogado => _service.isLoggedIn;
+  String? get userId => _service.currentUserId;
+  String? get nomeUsuario => _service.currentUserName;
+  String? get emailUsuario => _service.currentUserEmail;
+  String? get telefoneUsuario => _service.currentUserPhone;
 
   Future<bool> login(String email, String senha) async {
-    final encontrado = _usuarios.any(
-      (u) => u['email'] == email.trim() && u['senha'] == senha,
-    );
-
-    _estaLogado = encontrado;
-    notifyListeners();
-    return encontrado;
+    _setLoading(true);
+    try {
+      await _service.login(email: email.trim().toLowerCase(), password: senha);
+      _errorMessage = null;
+      return true;
+    } on OfficeAuthException catch (error) {
+      _errorMessage = error.message;
+      return false;
+    } finally {
+      _setLoading(false);
+    }
   }
 
-  bool cadastrarUsuario({
+  Future<bool> cadastrarUsuario({
     required String nome,
     required String email,
     required String telefone,
     required String senha,
-  }) {
-    final emailNormalizado = email.trim().toLowerCase();
-    final emailExistente = _usuarios.any((u) => u['email'] == emailNormalizado);
-    if (emailExistente) return false;
-
-    _usuarios.add({
-      'nome': nome.trim(),
-      'email': emailNormalizado,
-      'telefone': telefone.trim(),
-      'senha': senha,
-    });
-    notifyListeners();
-    return true;
+  }) async {
+    _setLoading(true);
+    try {
+      await _service.register(
+        nome: nome,
+        email: email,
+        telefone: telefone,
+        password: senha,
+      );
+      _errorMessage = null;
+      return true;
+    } on OfficeAuthException catch (error) {
+      _errorMessage = error.message;
+      return false;
+    } finally {
+      _setLoading(false);
+    }
   }
 
   Future<bool> recuperarSenha(String email) async {
-    await Future.delayed(const Duration(milliseconds: 700));
-    return _usuarios.any((u) => u['email'] == email.trim().toLowerCase());
+    _setLoading(true);
+    try {
+      await _service.recoverPassword(email.trim().toLowerCase());
+      _errorMessage = null;
+      return true;
+    } on OfficeAuthException catch (error) {
+      _errorMessage = error.message;
+      return false;
+    } finally {
+      _setLoading(false);
+    }
   }
 
-  void logout() {
-    _estaLogado = false;
+  Future<void> logout() async {
+    await _service.logout();
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
     notifyListeners();
   }
 }

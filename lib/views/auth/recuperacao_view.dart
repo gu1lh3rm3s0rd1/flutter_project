@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
+import '../../widgets/dialogs_helper.dart';
 
 class RecuperacaoView extends StatefulWidget {
   const RecuperacaoView({super.key});
@@ -19,19 +20,11 @@ class _RecuperacaoViewState extends State<RecuperacaoView> {
       final encontrado = await auth.recuperarSenha(_emailController.text.trim().toLowerCase());
       if (!mounted) return;
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(encontrado ? 'Recuperacao iniciada' : 'Conta nao encontrada'),
-          content: Text(
-            encontrado
-                ? 'Instrucoes de redefinicao foram enviadas para ${_emailController.text}.'
-                : 'Nao existe conta vinculada a este e-mail.',
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK"))
-          ],
-        ),
+      DialogsHelper.showSnackBar(
+        context,
+        encontrado
+            ? 'Instruções de redefinição enviadas para ${_emailController.text}.'
+            : (auth.errorMessage ?? 'Não foi possível recuperar o acesso.'),
       );
     }
   }
@@ -44,6 +37,7 @@ class _RecuperacaoViewState extends State<RecuperacaoView> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
     return Scaffold(
       appBar: AppBar(title: const Text("Recuperar acesso")),
       body: Padding(
@@ -54,6 +48,10 @@ class _RecuperacaoViewState extends State<RecuperacaoView> {
             children: [
               const Text('Informe o e-mail cadastrado para receber as instrucoes de recuperacao.'),
               const SizedBox(height: 20),
+              if (auth.isLoading) ...[
+                const LinearProgressIndicator(minHeight: 3),
+                const SizedBox(height: 16),
+              ],
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder()),
@@ -64,7 +62,7 @@ class _RecuperacaoViewState extends State<RecuperacaoView> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _recuperarSenha,
+                  onPressed: auth.isLoading ? null : _recuperarSenha,
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E3A5F), foregroundColor: Colors.white),
                   child: const Text("Enviar instrucoes"),
                 ),

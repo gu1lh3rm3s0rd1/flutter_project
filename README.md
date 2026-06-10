@@ -1,19 +1,24 @@
 ﻿# AutoFlow Oficina
 
-Aplicativo Flutter para gestao de oficina mecanica.
+Aplicativo Flutter para gestão de oficina mecânica com autenticação, Firestore, busca e consumo de API REST.
 
 ## Funcionalidades
 
-- Login de usuario
-- Cadastro de usuario
+- Login de usuario com Firebase Authentication
+- Cadastro de usuario com salvamento de perfil em Firestore
 - Recuperacao de senha
-- Painel com modulos: clientes e veiculos, ordens de servico, estoque, financeiro, entregas e sobre
+- Insercao, atualizacao e recuperacao em tempo real de clientes/veiculos e ordens de servico
+- Pesquisa dedicada com ordenacao e filtro case-insensitive
+- Consumo de API REST externa
 
 ## Tecnologias
 
 - Flutter
 - Dart
 - Provider (ChangeNotifier)
+- Firebase Authentication
+- Cloud Firestore
+- HTTP
 
 ## Como executar
 
@@ -22,6 +27,7 @@ Aplicativo Flutter para gestao de oficina mecanica.
 - Instalar o Flutter SDK e configurar o PATH.
 - Instalar o Google Chrome (para rodar na web).
 - (Opcional) Instalar Android Studio para rodar no emulador/dispositivo Android.
+- Ter um projeto Firebase criado se quiser usar o modo real com Auth e Firestore.
 
 Verifique se o Flutter esta pronto no seu ambiente:
 
@@ -42,7 +48,20 @@ cd flutter_project
 flutter pub get
 ```
 
-### 4) Rodar a aplicacao
+### 4) Configurar o Firebase
+
+Se for usar o modo Firebase real, siga estes passos uma vez por projeto:
+
+```bash
+dart pub global activate flutterfire_cli
+flutterfire configure
+```
+
+Isso gera o arquivo `lib/firebase_options.dart` com as credenciais do seu projeto.
+
+### 5) Rodar a aplicacao
+
+Modo local de demonstracao:
 
 Web (Chrome):
 
@@ -50,6 +69,12 @@ Web (Chrome):
 flutter run -d chrome
 ```
 
+Modo Firebase real depois de configurar o projeto:
+
+```bash
+flutter run -d chrome --dart-define=USE_FIREBASE=true
+```
+
 ## Observacao
 
-Projeto academico sem backend e sem banco de dados.
+Quando o Firebase nao estiver configurado, o app abre em modo local de demonstracao para permitir navegar e testar a interface.
